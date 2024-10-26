@@ -14,14 +14,12 @@
 """representer point"""
 
 import logging
-import functools
 
 import paddle
 import paddle.nn as nn
 import paddle.nn.functional as F
 from tqdm import tqdm
 
-from ...base_interpret import Interpreter
 from .example_base_interpreter import ExampleBaseInterpreter
 from ..common.utils import get_sublayer, get_top_and_bottom_n_examples
 

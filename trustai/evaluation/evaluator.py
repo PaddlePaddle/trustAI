@@ -13,14 +13,6 @@
 # limitations under the License.
 """This script includes code to calculate MAP score"""
 
-import json
-import re
-import os
-import math
-import numpy as np
-import argparse
-
-
 class Evaluator():
     """Evaluate prediction data.
     """

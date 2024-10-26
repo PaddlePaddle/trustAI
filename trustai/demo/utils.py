@@ -16,17 +16,16 @@
 import os
 import os.path as osp
 import shutil
-import json
 import logging
 import requests
 import hashlib
 import tarfile
 import zipfile
 import time
-import uuid
-
+import numpy as np
 from tqdm import tqdm
 from paddlenlp.data import DataCollatorWithPadding
+import paddle
 
 # name : (url, md5)
 DOWNLOAD_MODEL_PATH_DICT = {
@@ -81,8 +80,7 @@ def get_path_from_url(url, root_dir, md5sum=None, check_exist=True):
         str: a local path to save downloaded models & weights & datasets.
     """
 
-    from paddle.fluid.dygraph.parallel import ParallelEnv
-
+    
     assert is_url(url), "downloading from {} not a url".format(url)
     # parse path after download to decompress under root_dir
     fullpath = _map_path(url, root_dir)
@@ -90,13 +88,13 @@ def get_path_from_url(url, root_dir, md5sum=None, check_exist=True):
     if osp.exists(fullpath) and check_exist and _md5check(fullpath, md5sum):
         logging.info("Found {}".format(fullpath))
     else:
-        if ParallelEnv().local_rank % 8 == 0:
+        if paddle.distributed.ParallelEnv().local_rank % 8 == 0:
             fullpath = _download(url, root_dir, md5sum)
         else:
             while not os.path.exists(fullpath):
                 time.sleep(1)
 
-    if ParallelEnv().local_rank % 8 == 0:
+    if paddle.distributed.ParallelEnv().local_rank % 8 == 0:
         if tarfile.is_tarfile(fullpath) or zipfile.is_zipfile(fullpath):
             fullpath = _decompress(fullpath)
 
