@@ -15,8 +15,6 @@
 
 import numpy as np
 import paddle
-from paddle import tensor
-from paddle.fluid import layers
 
 
 def attention_predict_fn_on_paddlenlp(inputs,
@@ -57,11 +55,11 @@ def attention_predict_fn_on_paddlenlp(inputs,
     num_heads = paddle_model.ernie.config['num_attention_heads']
     hidden_size = paddle_model.ernie.config['hidden_size']
     head_dim = hidden_size // num_heads
-    q = tensor.reshape(x=query_feature[0], shape=[0, 0, num_heads, head_dim])
-    q = tensor.transpose(x=q, perm=[0, 2, 1, 3])
-    k = tensor.reshape(x=key_feature[0], shape=[0, 0, num_heads, head_dim])
-    k = tensor.transpose(x=k, perm=[0, 2, 1, 3])
-    attention = layers.matmul(x=q, y=k, transpose_y=True, alpha=head_dim**-0.5)
+    q = paddle.tensor.reshape(x=query_feature[0], shape=[0, 0, num_heads, head_dim])
+    q = paddle.tensor.transpose(x=q, perm=[0, 2, 1, 3])
+    k = paddle.tensor.reshape(x=key_feature[0], shape=[0, 0, num_heads, head_dim])
+    k = paddle.tensor.transpose(x=k, perm=[0, 2, 1, 3])
+    attention = paddle.matmul(x=q, y=k, transpose_y=True)
 
     attention = attention.sum(1)[:, 0]
 
@@ -128,11 +126,11 @@ def ig_predict_fn_on_paddlenlp_pretrain(inputs,
     probas = paddle.nn.functional.softmax(logits, axis=2)  # get probabilities.
     preds = paddle.argmax(probas, axis=2)  # get predictions.
     mask_num = masked_positions.sum(axis=1).tolist()
-    logits = paddle.gather_nd(logits, layers.where(masked_positions))
+    logits = paddle.gather_nd(logits, paddle.fluid.layers.where(masked_positions))
     logits = logits.split(num_or_sections=mask_num)
-    probas = paddle.gather_nd(probas, layers.where(masked_positions))
+    probas = paddle.gather_nd(probas, paddle.fluid.layers.where(masked_positions))
     probas = probas.split(num_or_sections=mask_num)
-    preds = paddle.gather_nd(preds, layers.where(masked_positions))
+    preds = paddle.gather_nd(preds, paddle.fluid.layers.where(masked_positions))
     preds = preds.split(num_or_sections=mask_num)
 
     if label is None:
@@ -199,11 +197,11 @@ def attention_predict_fn_on_paddlenlp_pretrain(inputs,
     num_heads = paddle_model.ernie.config['num_attention_heads']
     hidden_size = paddle_model.ernie.config['hidden_size']
     head_dim = hidden_size // num_heads
-    q = tensor.reshape(x=query_feature[0], shape=[0, 0, num_heads, head_dim])
-    q = tensor.transpose(x=q, perm=[0, 2, 1, 3])
-    k = tensor.reshape(x=key_feature[0], shape=[0, 0, num_heads, head_dim])
-    k = tensor.transpose(x=k, perm=[0, 2, 1, 3])
-    attention = layers.matmul(x=q, y=k, transpose_y=True, alpha=head_dim**-0.5)
+    q = paddle.tensor.reshape(x=query_feature[0], shape=[0, 0, num_heads, head_dim])
+    q = paddle.tensor.transpose(x=q, perm=[0, 2, 1, 3])
+    k = paddle.tensor.reshape(x=key_feature[0], shape=[0, 0, num_heads, head_dim])
+    k = paddle.tensor.transpose(x=k, perm=[0, 2, 1, 3])
+    attention = paddle.matmul(x=q, y=k, transpose_y=True)
 
     attention = attention.sum(1)
     mask_sum_attention = (attention * masked_positions.unsqueeze(2)).sum(axis=1)
@@ -212,9 +210,9 @@ def attention_predict_fn_on_paddlenlp_pretrain(inputs,
     probas = paddle.nn.functional.softmax(logits, axis=2)  # get probabilities.
     preds = paddle.argmax(probas, axis=2)  # get predictions.
     mask_num = mask_num.squeeze().tolist()
-    probas = paddle.gather_nd(probas, layers.where(masked_positions))
+    probas = paddle.gather_nd(probas, paddle.fluid.layers.where(masked_positions))
     probas = probas.split(num_or_sections=mask_num)
-    preds = paddle.gather_nd(preds, layers.where(masked_positions))
+    preds = paddle.gather_nd(preds, paddle.fluid.layers.where(masked_positions))
     preds = preds.split(num_or_sections=mask_num)
 
     return attention.numpy(), preds, probas
@@ -233,9 +231,9 @@ def general_predict_fn_on_paddlenlp_pretrain(inputs, paddle_model):
     probas = paddle.nn.functional.softmax(logits, axis=2)  # get probabilities.
     preds = paddle.argmax(probas, axis=2)  # get predictions.
     mask_num = mask_num.squeeze().tolist()
-    probas = paddle.gather_nd(probas, layers.where(masked_positions))
+    probas = paddle.gather_nd(probas, paddle.fluid.layers.where(masked_positions))
     probas = probas.split(num_or_sections=mask_num)
-    preds = paddle.gather_nd(preds, layers.where(masked_positions))
+    preds = paddle.gather_nd(preds, paddle.fluid.layers.where(masked_positions))
     preds = preds.split(num_or_sections=mask_num)
 
     return preds, probas

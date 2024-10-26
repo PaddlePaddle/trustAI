@@ -4,12 +4,8 @@ feature-based similarity method.
 cosine, cot and euc.
 """
 import os
-import sys
-import functools
-import warnings
 
 import paddle
-import paddle.nn.functional as F
 from tqdm import tqdm
 
 from ..common.utils import get_sublayer, dot_similarity, cos_similarity, euc_similarity, get_top_and_bottom_n_examples

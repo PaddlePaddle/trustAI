@@ -14,7 +14,6 @@
 """Some useful functions."""
 import paddle
 import paddle.nn.functional as F
-import numpy as np
 from .data_class import ExampleResult
 
 
